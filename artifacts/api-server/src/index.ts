@@ -1009,9 +1009,16 @@ app.post("/api/incentives/withdraw", authenticateToken, requireRole("ADMIN"), as
 
 app.get("/api/incentives/summary", authenticateToken, async (req, res) => {
   const { branchId } = req.query;
+  const user = (req as any).user;
   try {
     const where: any = { status: "earned" };
-    if (branchId) where.branchId = branchId as string;
+    // Branch isolation: CASHIER is always scoped to their own branch and cannot
+    // request other branches or global totals. ADMIN/AUDIT may filter by branch.
+    if (user.role === "CASHIER") {
+      where.branchId = user.branchId;
+    } else if (branchId) {
+      where.branchId = branchId as string;
+    }
 
     const commissions = await prisma.commission.findMany({
       where,
