@@ -1,0 +1,20 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile synchronized from Postgres for identity verification",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["email"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User documents"
+    }
+  }
+}

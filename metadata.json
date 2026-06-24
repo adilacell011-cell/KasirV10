@@ -1,0 +1,10 @@
+{
+  "name": "Remix: Remix: Alfath Pulsa pos apk",
+  "description": "Sistem Manajemen Alfath Pulsa - POS, Stok, dan Laporan Transaksi.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
