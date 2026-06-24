@@ -6340,20 +6340,20 @@ export default function App() {
 
                       {/* BREADCRUMBS */}
                       {transferDrillPath.length > 0 && !transferSearch && (
-                        <div className="bg-slate-900 px-4 md:px-6 py-3 flex items-center gap-2 shrink-0">
+                        <div className="bg-slate-50 px-4 md:px-6 py-3 flex items-center gap-2 shrink-0 border-b border-slate-200">
                           <button
                             onClick={() => setTransferDrillPath([])}
-                            className="text-[10px] font-black text-emerald-400 uppercase tracking-widest hover:text-white transition-colors"
+                            className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
                           >
                             Semua
                           </button>
                           {transferDrillPath.map((path, idx) => (
                             <React.Fragment key={idx}>
-                              <ChevronRight className="w-3 h-3 text-slate-600" />
+                              <ChevronRight className="w-3 h-3 text-slate-400" />
                               <button
                                 onClick={() => setTransferDrillPath(transferDrillPath.slice(0, idx + 1))}
                                 className={`text-[10px] font-black uppercase tracking-widest max-w-[120px] truncate ${
-                                  idx === transferDrillPath.length - 1 ? "text-white" : "text-slate-400"
+                                  idx === transferDrillPath.length - 1 ? "text-slate-900" : "text-slate-400"
                                 }`}
                               >
                                 {path}
@@ -6366,15 +6366,15 @@ export default function App() {
 
                     {/* INPUT FORM SECTION */}
                     <div className="w-full lg:w-[360px] xl:w-[400px] flex flex-col bg-white rounded-[32px] border border-slate-200 shadow-xl overflow-hidden shrink-0">
-                      <div className="p-6 bg-slate-900 text-white text-left shrink-0">
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-emerald-400">Input Detail Stok</h3>
+                      <div className="p-6 bg-slate-50 text-slate-900 text-left shrink-0 border-b border-slate-200">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 text-emerald-600">Input Detail Stok</h3>
                         {selectedTransferProduct ? (
                           <div className="flex gap-4 items-center animate-in slide-in-from-right-4">
-                            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0">
-                              <Package className="w-6 h-6 text-white" />
+                            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center shrink-0">
+                              <Package className="w-6 h-6 text-emerald-600" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[10px] font-black text-emerald-300 uppercase leading-none mb-1.5">{selectedTransferProduct.brand}</p>
+                              <p className="text-[10px] font-black text-emerald-600 uppercase leading-none mb-1.5">{selectedTransferProduct.brand}</p>
                               <h4 className="text-[14px] font-black leading-tight uppercase line-clamp-2">{selectedTransferProduct.name}</h4>
                             </div>
                           </div>
@@ -7898,13 +7898,13 @@ export default function App() {
             {activeMenu === "shift" && profile?.role === "CASHIER" && (
               <div className="flex-1 p-4 md:p-6 overflow-y-auto w-full flex flex-col xl:flex-row items-center xl:items-start justify-center gap-6 relative">
                 <div className="max-w-md w-full bg-white rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative shrink-0">
-                  <div className="p-4 md:p-8 border-b border-slate-200 bg-slate-900 text-white text-center relative overflow-hidden">
+                  <div className="p-4 md:p-8 border-b border-slate-200 bg-slate-50 text-slate-900 text-center relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                    <Clock className="w-14 h-14 text-blue-400 mx-auto mb-4 relative z-10" />
+                    <Clock className="w-14 h-14 text-blue-600 mx-auto mb-4 relative z-10" />
                     <h2 className="text-xl md:text-lg md:text-2xl font-black uppercase tracking-tight relative z-10">
                       Manajemen Shift
                     </h2>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-2 relative z-10">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-2 relative z-10">
                       {branches.find((b) => b.id === profile.branchId)?.name ||
                         "Belum Ada Cabang"}
                     </p>
@@ -8470,9 +8470,9 @@ export default function App() {
                       </div>
 
                       {/* TOP PRODUCTS */}
-                      <div className="lg:col-span-1 bg-slate-900 rounded-3xl p-6 text-white overflow-hidden relative">
-                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                         <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-6 text-blue-400 relative z-10">
+                      <div className="lg:col-span-1 bg-white rounded-3xl p-6 text-slate-900 border border-slate-200/60 shadow-sm overflow-hidden relative">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+                         <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-6 text-blue-600 relative z-10">
                             <TrendingUp className="w-4 h-4" /> Produk Terlaris
                           </h4>
                           <div className="space-y-4 relative z-10">
@@ -8493,9 +8493,9 @@ export default function App() {
                                 .sort((a, b) => b.qty - a.qty)
                                 .slice(0, 5)
                                 .map((p, i) => (
-                                  <div key={i} className="flex items-center justify-between border-b border-white/10 pb-2 last:border-0">
-                                    <span className="text-[10px] font-medium uppercase flex-1 pr-4 break-words py-0.5">{p.name}</span>
-                                    <span className="text-[10px] font-black text-blue-400">{p.qty}x</span>
+                                  <div key={i} className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0">
+                                    <span className="text-[10px] font-medium uppercase flex-1 pr-4 break-words py-0.5 text-slate-600">{p.name}</span>
+                                    <span className="text-[10px] font-black text-blue-600">{p.qty}x</span>
                                   </div>
                                 ));
                             })()}
@@ -8948,18 +8948,18 @@ export default function App() {
       {globalAlerts.map((alert) => (
         <div
           key={alert.id}
-          className={`pointer-events-auto bg-slate-900/95 backdrop-blur-md text-white border border-slate-700/50 p-4 rounded-2xl shadow-2xl flex items-start gap-3 animate-in slide-in-from-top-4 duration-300 relative border-l-4 ${alert.type === 'success' ? 'border-l-emerald-500' : 'border-l-amber-500'}`}
+          className={`pointer-events-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl text-slate-900 border border-slate-200/80 p-4 rounded-2xl shadow-2xl shadow-slate-900/10 flex items-start gap-3 animate-in slide-in-from-top-4 duration-300 relative border-l-4 ${alert.type === 'success' ? 'border-l-emerald-500' : 'border-l-amber-500'}`}
         >
           <div className={`w-5 h-5 rounded-full ${alert.type === 'success' ? 'bg-emerald-500/15' : 'bg-amber-500/15'} flex items-center justify-center shrink-0 mt-0.5`}>
             {alert.type === 'success' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-[10px] font-black uppercase ${alert.type === 'success' ? 'text-emerald-500' : 'text-amber-500'} tracking-widest`}>{alert.type === 'success' ? 'Berhasil' : 'Informasi Sistem'}</p>
-            <p className="text-[11px] font-bold text-slate-100 mt-0.5 leading-relaxed break-words">{alert.message}</p>
+            <p className="text-[11px] font-bold text-slate-700 mt-0.5 leading-relaxed break-words">{alert.message}</p>
           </div>
           <button
             onClick={() => setGlobalAlerts((prev) => prev.filter((a) => a.id !== alert.id))}
-            className="text-slate-400 hover:text-white transition-colors p-1"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1"
           >
             <X className="w-3.5 h-3.5" />
           </button>
