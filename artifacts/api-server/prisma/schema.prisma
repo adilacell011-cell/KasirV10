@@ -217,3 +217,13 @@ model DailyIncomeSummary {
 
   @@unique([branchId, date])
 }
+
+// Shopping plans were previously stored in Firestore ("shoppingPlans"); now stored locally.
+model ShoppingPlan {
+  id        String   @id @default(uuid())
+  title     String?
+  items     Json     @default("[]")
+  status    String   @default("DRAFT")
+  creatorId String?
+  createdAt DateTime @default(now())
+}

@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Locally generated JWT signing secret (api-server)
+.jwt-secret
+**/.jwt-secret

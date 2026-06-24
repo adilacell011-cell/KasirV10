@@ -69,22 +69,6 @@ import {
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { io } from "socket.io-client";
-import { auth, db, signInWithGoogle } from "./lib/firebase";
-import { 
-  query, 
-  collection, 
-  orderBy, 
-  startAfter, 
-  limit, 
-  where, 
-  getDocs, 
-  writeBatch, 
-  doc, 
-  addDoc, 
-  deleteDoc, 
-  setDoc,
-  updateDoc
-} from "firebase/firestore";
 import { api } from "./services/api";
 import { useBarcodeScanner } from "./hooks/useBarcodeScanner";
 
@@ -258,10 +242,10 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   const errInfo: FirestoreErrorInfo = {
     error: errMessage,
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
+      userId: undefined,
+      email: undefined,
+      emailVerified: undefined,
+      isAnonymous: undefined,
     },
     operationType,
     path
@@ -326,111 +310,37 @@ export default function App() {
   const [isUpdatingPass, setIsUpdatingPass] = useState(false);
   const [branches, setBranches] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [hasMoreProducts, setHasMoreProducts] = useState(false);
   const [lastProductDoc, setLastProductDoc] = useState<any>(null);
   const [isSearchingProducts, setIsSearchingProducts] = useState(false);
   const PRODUCTS_PAGE_SIZE = 2000;
 
-  // Pagination Logic for Products
-  const loadMoreProducts = async () => {
-    if (!hasMoreProducts || !lastProductDoc) return;
-    try {
-      const nextQuery = query(
-        collection(db, "products"),
-        orderBy("name"),
-        startAfter(lastProductDoc),
-        limit(PRODUCTS_PAGE_SIZE)
-      );
-      const snap = await getDocs(nextQuery);
-      if (snap.empty) {
-        setHasMoreProducts(false);
-        return;
-      }
-      const newProds = snap.docs.map((d) => ({ id: d.id, ...d.data() as any }));
-      setProducts((prev) => {
-        const existingIds = new Set(prev.map(p => p.id));
-        const filteredNew = newProds.filter(p => !existingIds.has(p.id));
-        return [...prev, ...filteredNew];
-      });
-      setLastProductDoc(snap.docs[snap.docs.length - 1]);
-      setHasMoreProducts(snap.docs.length === PRODUCTS_PAGE_SIZE);
-    } catch (error) {
-      console.error("Error loading more products:", error);
-    }
-  };
+  // Products are now loaded in full from the local API (api.getProducts), so there is
+  // no extra Firestore page to fetch. Kept as a no-op for compatibility.
+  const loadMoreProducts = async () => {};
 
-  const loadMoreSales = async () => {
-    if (!hasMoreSales || !lastSalesDoc) return;
-    try {
-      const salesBaseQuery = collection(db, "sales");
-      let nextQuery;
-      if (profile?.role === "ADMIN") {
-        nextQuery = query(
-          salesBaseQuery,
-          orderBy("createdAt", "desc"),
-          startAfter(lastSalesDoc),
-          limit(SALES_PAGE_SIZE)
-        );
-      } else {
-        nextQuery = query(
-          salesBaseQuery,
-          where("branchId", "==", profile?.branchId),
-          orderBy("createdAt", "desc"),
-          startAfter(lastSalesDoc),
-          limit(SALES_PAGE_SIZE)
-        );
-      }
-      
-      const snap = await getDocs(nextQuery);
-      if (snap.empty) {
-        setHasMoreSales(false);
-        return;
-      }
-      const newSales = snap.docs.map((d) => ({ id: d.id, ...d.data() as any }));
-      setSales((prev) => {
-        const existingIds = new Set(prev.map(s => s.id));
-        const filteredNew = newSales.filter(s => !existingIds.has(s.id));
-        return [...prev, ...filteredNew];
-      });
-      setLastSalesDoc(snap.docs[snap.docs.length - 1]);
-      setHasMoreSales(snap.docs.length === SALES_PAGE_SIZE);
-    } catch (error) {
-      console.error("Error loading more sales:", error);
-    }
-  };
+  // Sales are loaded from the local API; the old Firestore pagination is no longer needed.
+  const loadMoreSales = async () => {};
 
   const handleFullDatabaseSearch = async () => {
     if (!searchTerm || searchTerm.length < 3) return;
     setIsSearchingProducts(true);
     try {
-      const searchUpper = searchTerm.toUpperCase();
-      // 1. Search by Barcode
-      const qBarcode = query(collection(db, "products"), where("barcode", "==", searchTerm));
-      const snapBarcode = await getDocs(qBarcode);
-      let results = snapBarcode.docs.map(d => ({ id: d.id, ...d.data() as any }));
-
-      // 2. Prefix Search by Name if no barcode match
+      const term = searchTerm.trim();
+      const termUpper = term.toUpperCase();
+      // Search the already-loaded local product list (loaded from the API).
+      // 1. Exact barcode match
+      let results = products.filter((p) => p.barcode && String(p.barcode) === term);
+      // 2. Fallback: name contains match
       if (results.length === 0) {
-        const qName = query(
-          collection(db, "products"),
-          where("name", ">=", searchUpper),
-          where("name", "<=", searchUpper + "\uf8ff"),
-          limit(20)
-        );
-        const snapName = await getDocs(qName);
-        results = snapName.docs.map(d => ({ id: d.id, ...d.data() as any }));
+        results = products
+          .filter((p) => (p.name || "").toUpperCase().includes(termUpper))
+          .slice(0, 20);
       }
 
       if (results.length > 0) {
-        setProducts(prev => {
-          const existingIds = new Set(prev.map(p => p.id));
-          const newProds = results.filter(r => !existingIds.has(r.id));
-          return [...prev, ...newProds];
-        });
-        // We use the results directly for suggestions
         setSearchSuggestions(results.slice(0, 10));
       } else {
-        // Fallback for search phrases
         alert("Pencarian spesifik tidak membuahkan hasil. Silakan cari per kategory di menu Produk.");
       }
     } catch (e) {
@@ -1166,25 +1076,8 @@ export default function App() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setAuthLoading(true);
-    try {
-      const result = await signInWithGoogle();
-      const idToken = await result.user.getIdToken();
-      const { user: userData } = await api.loginWithGoogle(idToken);
-      setProfile(userData);
-      const [bData, pData] = await Promise.all([api.getBranches(), api.getProducts()]);
-      setBranches(bData.sort((a: any, b: any) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: 'base' })));
-      setProducts(pData);
-      if (userData.role === "ADMIN") setActiveMenu("dashboard");
-      else if (userData.role === "AUDIT") setActiveMenu("audit");
-      else if (userData.role === "CASHIER") setActiveMenu("pos");
-    } catch (err: any) {
-      alert("Google Login Error: " + err.message);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
+  // Google / Firebase login removed — the app now uses local username + password
+  // authentication only (handleLoginSubmit) so it can run on a local server.
 
   const handleAppLogout = () => {
     localStorage.removeItem("token");
@@ -1243,11 +1136,12 @@ export default function App() {
         const sData = await api.getSales({ branchId: effectiveBranchId }).catch(e => { console.error("Sales Load Error:", e); return sales; });
         const cData = await api.getCommissions({ branchId: effectiveBranchId }).catch(e => { console.error("Commissions Load Error:", e); return commissions; });
         
-        const [shData, uData, aData, dsData] = await Promise.all([
+        const [shData, uData, aData, dsData, spData] = await Promise.all([
           api.getShifts({ branchId: effectiveBranchId }).catch(e => { console.error("Shifts Load Error:", e); return shifts; }),
           api.getUsers().catch(e => { console.error("Users Load Error:", e); return users; }),
           api.getAdjustments().catch(e => { console.error("Adjustments Load Error:", e); return adjustments; }),
-          api.getDailySummaries().catch(e => { console.error("Daily Summaries Load Error:", e); return dailySummaries; })
+          api.getDailySummaries().catch(e => { console.error("Daily Summaries Load Error:", e); return dailySummaries; }),
+          api.getShoppingPlans().catch(e => { console.error("Shopping Plans Load Error:", e); return shoppingPlans; })
         ]);
         
         setProducts(pData);
@@ -1257,6 +1151,7 @@ export default function App() {
         setUsers(uData);
         setAdjustments(aData);
         setDailySummaries(dsData || []);
+        setShoppingPlans(spData || []);
         
         // --- RESTORE OPEN SHIFT FROM DATABASE ---
         if (profile?.branchId) {
@@ -2031,50 +1926,10 @@ export default function App() {
     
     setIsSyncingOldSales(true);
     try {
-        // Fetch ALL products for accurate capital calculation during sync
-        const prodSnap = await getDocs(collection(db, "products"));
-        const fullProductMap = new Map(prodSnap.docs.map(d => [d.id, d.data()]));
-
-        const salesRef = collection(db, "sales");
-        // We might want to limit this if there are 100k sales, but let's assume safe for now
-        const snap = await getDocs(query(salesRef, orderBy("createdAt", "desc"), limit(2000)));
-        const salesToProcess = snap.docs.map(d => ({ id: d.id, ...d.data() as any }));
-        
-        const summaries: Record<string, { revenue: number; profit: number; commissions: number; count: number; branchId: string; date: string }> = {};
-        
-        salesToProcess.forEach(s => {
-            const dayKey = (s.shiftDate || getLogicalShiftDate(new Date(s.createdAt))).replace(/\//g, "-");
-            const summaryId = `${s.branchId}_${dayKey}`;
-            
-            if (!summaries[summaryId]) {
-                summaries[summaryId] = { revenue: 0, profit: 0, commissions: 0, count: 0, branchId: s.branchId, date: dayKey };
-            }
-            
-            summaries[summaryId].revenue += (s.total || 0);
-            summaries[summaryId].commissions += (s.totalCommission || 0);
-            summaries[summaryId].count += 1;
-            
-            // Re-calculate profit if missing
-            if (s.totalProfit !== undefined) {
-                summaries[summaryId].profit += s.totalProfit;
-            } else {
-                const capital = (s.items || []).reduce((sum: number, it: any) => {
-                    const pPrice = it.purchasePrice !== undefined ? it.purchasePrice : (fullProductMap.get(it.id) as any)?.purchasePrice || 0;
-                    return sum + (Number(pPrice) * Number(it.qty || 0));
-                }, 0);
-                summaries[summaryId].profit += ((s.total || 0) - capital);
-            }
-        });
-        
-        const batch = writeBatch(db);
-        Object.entries(summaries).forEach(([id, data]) => {
-            batch.set(doc(db, "daily_summaries", id), {
-                ...data,
-                lastUpdated: new Date().toISOString()
-            }, { merge: true });
-        });
-        
-        await batch.commit();
+        // The backend now computes daily summaries directly from local sales data,
+        // so "syncing" simply re-fetches the up-to-date summaries from the API.
+        const dsData = await api.getDailySummaries();
+        setDailySummaries(dsData || []);
         alert("Sinkronisasi selesai! Data ringkasan berhasil diperbarui.");
     } catch (e) {
         console.error("Sync Old Sales Error:", e);
@@ -5063,9 +4918,14 @@ export default function App() {
                             <button
                               onClick={async () => {
                                 if (confirm("Hapus rencana ini?")) {
-                                  await deleteDoc(
-                                    doc(db, "shoppingPlans", plan.id),
-                                  );
+                                  try {
+                                    await api.deleteShoppingPlan(plan.id);
+                                    setShoppingPlans((prev) =>
+                                      prev.filter((p) => p.id !== plan.id),
+                                    );
+                                  } catch (e: any) {
+                                    alert("Gagal menghapus rencana: " + e.message);
+                                  }
                                 }
                               }}
                               className="px-4 py-3 bg-red-50 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all"
@@ -5142,14 +5002,15 @@ export default function App() {
                               title: planDraftTitle,
                               items: planDraftItems,
                               status: "DRAFT",
-                              creatorId: user.uid,
-                              createdAt: Date.now(),
+                              creatorId: profile?.uid || profile?.id || null,
                             };
-                            await addDoc(
-                              collection(db, "shoppingPlans"),
-                              planObj,
-                            );
-                            setIsCreatingPlan(false);
+                            try {
+                              const created = await api.createShoppingPlan(planObj);
+                              setShoppingPlans((prev) => [created, ...prev]);
+                              setIsCreatingPlan(false);
+                            } catch (e: any) {
+                              alert("Gagal menyimpan rencana: " + e.message);
+                            }
                           }}
                           className="px-4 md:px-6 py-3 md:py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all flex items-center gap-2"
                         >

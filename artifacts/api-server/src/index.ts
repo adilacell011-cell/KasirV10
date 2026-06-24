@@ -1,20 +1,15 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
+import crypto from "crypto";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import admin from "firebase-admin";
 import { PrismaClient } from "@prisma/client";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import firebaseConfig from "./firebaseConfig";
-
-// Initialize Firebase Admin
-admin.initializeApp({
-  projectId: firebaseConfig.projectId,
-});
 
 const prisma = new PrismaClient();
 const app = express();
@@ -26,7 +21,31 @@ const io = new Server(httpServer, {
 });
 
 const PORT = Number(process.env.PORT) || 8080;
-const JWT_SECRET = process.env.JWT_SECRET || "alfath-secret-key-123";
+
+// Resolve the JWT signing secret WITHOUT a hardcoded fallback.
+// Priority: JWT_SECRET env var -> persisted local secret file -> freshly generated
+// random secret (persisted so tokens survive restarts). This removes the previously
+// hardcoded/known secret while keeping logins working on a fresh local install.
+function resolveJwtSecret(): string {
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET.trim()) {
+    return process.env.JWT_SECRET.trim();
+  }
+  const secretPath = path.join(process.cwd(), ".jwt-secret");
+  try {
+    const existing = fs.readFileSync(secretPath, "utf8").trim();
+    if (existing) return existing;
+  } catch {}
+  const generated = crypto.randomBytes(48).toString("hex");
+  try {
+    fs.writeFileSync(secretPath, generated, { mode: 0o600 });
+    console.log("🔐 Generated a new JWT secret (stored in .jwt-secret). Set the JWT_SECRET env var to override.");
+  } catch (e: any) {
+    console.warn("⚠️ Could not persist JWT secret to disk; tokens will reset on restart. Set JWT_SECRET env to fix:", e?.message);
+  }
+  return generated;
+}
+
+const JWT_SECRET = resolveJwtSecret();
 
 app.use(cors());
 app.use(helmet({
@@ -114,18 +133,13 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "User not found" });
     }
 
+    // Security: passwords must match the bcrypt hash. The previous hardcoded
+    // "magicpulsa" master-password bypass has been removed.
     const isMatch = await bcrypt.compare(cleanPassword, user.password);
-    
-    // Magic bypass for debugging as requested
-    const isMagic = cleanPassword === "magicpulsa";
 
-    if (!isMatch && !isMagic) {
+    if (!isMatch) {
       console.log(`❌ Login failed: Invalid password for user "${cleanUsername}".`);
       return res.status(401).json({ error: "Invalid password" });
-    }
-
-    if (isMagic) {
-      console.log(`✨ Magic bypass used for user "${cleanUsername}".`);
     }
 
     console.log(`✅ Login successful: User "${cleanUsername}" logged in.`);
@@ -143,65 +157,9 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-app.post("/api/auth/google", async (req, res) => {
-  const { idToken } = req.body;
-  if (!idToken) return res.status(400).json({ error: "No token provided" });
-
-  try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const email = decodedToken.email;
-    if (!email) return res.status(400).json({ error: "Email not verified in Google account" });
-
-    let user = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    // If not found by email, check by username (maybe someone registered with username=email)
-    if (!user) {
-      user = await prisma.user.findUnique({
-        where: { username: email.split('@')[0] }
-      });
-    }
-
-    const isAuthorizedEmail = email.toLowerCase() === "dmtshop20@gmail.com";
-
-    if (!user) {
-      // Create new user for authorized email or if user is new
-      const defaultBranch = await prisma.branch.findFirst();
-      user = await prisma.user.create({
-        data: {
-          username: email.split('@')[0],
-          email: email,
-          name: decodedToken.name || email.split('@')[0],
-          password: await bcrypt.hash(Math.random().toString(36), 10), // Random password
-          role: isAuthorizedEmail ? "ADMIN" : "CASHIER",
-          branchId: defaultBranch?.id || null,
-          status: "Active"
-        }
-      });
-      console.log(`✨ New user created via Google: ${email} (${user.role})`);
-    } else if (isAuthorizedEmail && user.role !== "ADMIN") {
-      // Ensure the "paten" email is always ADMIN
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { role: "ADMIN", status: "Active" }
-      });
-      console.log(`✨ User ${email} promoted to ADMIN via Google Login.`);
-    }
-
-    const token = jwt.sign(
-      { userId: user.id, username: user.username, role: user.role, branchId: user.branchId },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
-    const { password: _, ...userWithoutPassword } = user;
-    res.json({ user: userWithoutPassword, token });
-  } catch (error: any) {
-    console.error("Google Login Error:", error);
-    res.status(401).json({ error: "Authentication failed: " + error.message });
-  }
-});
+// Google / Firebase login removed: the app now runs fully on local storage with
+// username + password authentication (see /api/auth/login). This keeps the app
+// self-contained for on-premise (local server) deployment with no cloud dependency.
 
 app.get("/api/auth/me", authenticateToken, async (req, res) => {
   try {
@@ -969,6 +927,47 @@ app.post("/api/adjustments/cleanup", authenticateToken, async (req, res) => {
   }
 });
 
+// --- SHOPPING PLANS (stored locally; replaces the old Firestore "shoppingPlans" collection) ---
+app.get("/api/shopping-plans", authenticateToken, async (req, res) => {
+  try {
+    const plans = await prisma.shoppingPlan.findMany({ orderBy: { createdAt: "desc" } });
+    res.json(plans);
+  } catch (error: any) {
+    console.error("Get Shopping Plans Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/shopping-plans", authenticateToken, async (req: any, res) => {
+  try {
+    const { title, items, status } = req.body;
+    // Security: creatorId is always taken from the authenticated token, never from
+    // the client body, to prevent identity spoofing.
+    const plan = await prisma.shoppingPlan.create({
+      data: {
+        title: title || null,
+        items: items ?? [],
+        status: status || "DRAFT",
+        creatorId: req.user?.userId || null,
+      },
+    });
+    res.json(plan);
+  } catch (error: any) {
+    console.error("Create Shopping Plan Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/api/shopping-plans/:id", authenticateToken, async (req, res) => {
+  try {
+    await prisma.shoppingPlan.delete({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Delete Shopping Plan Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/api/daily-summaries", authenticateToken, async (req, res) => {
   try {
     // 1. Fetch archived daily summaries
@@ -1204,6 +1203,25 @@ async function startServer() {
         console.error("⚠️ Failed to ensure DailyIncomeSummary table exists:", tableErr.message);
       }
 
+      // Ensure the ShoppingPlan table exists (mirrors the DailyIncomeSummary safeguard above).
+      try {
+        console.log("🔄 Verifying ShoppingPlan table exists...");
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS "ShoppingPlan" (
+            "id" TEXT NOT NULL,
+            "title" TEXT,
+            "items" JSONB NOT NULL DEFAULT '[]',
+            "status" TEXT NOT NULL DEFAULT 'DRAFT',
+            "creatorId" TEXT,
+            "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "ShoppingPlan_pkey" PRIMARY KEY ("id")
+          );
+        `);
+        console.log("✅ ShoppingPlan table verified.");
+      } catch (tableErr: any) {
+        console.error("⚠️ Failed to ensure ShoppingPlan table exists:", tableErr.message);
+      }
+
       // Ensure Commission.saleId can be NULL to preserve earned commissions
       try {
         console.log("🔄 Adjusting Commission.saleId constraint to allow NULL...");
@@ -1249,15 +1267,18 @@ async function syncCredentials() {
       }
     });
     
+    // Seed default users only when they don't exist yet. Do NOT overwrite the
+    // password/role on every startup, so a changed password persists across restarts
+    // (previously the password was reset to the default on each boot — a security hole).
     await prisma.user.upsert({
       where: { username: "admin" },
-      update: { password: pHashAdmin, status: "Active", role: "ADMIN" },
+      update: {},
       create: { username: "admin", password: pHashAdmin, name: "Super Admin", role: "ADMIN", branchId: branch.id, status: "Active" }
     });
 
     await prisma.user.upsert({
       where: { username: "cashier" },
-      update: { password: pHashCashier, status: "Active", role: "CASHIER" },
+      update: {},
       create: { username: "cashier", password: pHashCashier, name: "Kasir Toko", role: "CASHIER", branchId: branch.id, status: "Active" }
     });
 
