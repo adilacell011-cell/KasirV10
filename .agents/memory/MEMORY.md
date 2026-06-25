@@ -1,8 +1,8 @@
 - [Multi-artifact socket.io routing](multi-artifact-socketio.md) — same-origin `io()` needs `/socket.io` added to the api artifact.toml `paths`, else the proxy sends it to the frontend.
 - [Prisma dual-schema pitfall](prisma-dual-schema.md) — Prisma prefers `./schema.prisma` over `./prisma/schema.prisma`; a stray root copy silently overrides edits.
-- [AlfathPOS authz & realtime model](alfathpos-authz-model.md) — enforced ADMIN/AUDIT/CASHIER matrix via requireRole + own-branch checks; GET /users left open on purpose; strip password from nested cashier includes; socket rooms from verified JWT; conditional updateMany stock guard.
-- [AlfathPOS Docker deploy](alfathpos-docker-deploy.md) — single-stage api image keeps pnpm symlinks (Prisma resolution); entrypoint `db push` auto-creates tables; nginx proxies /api + /socket.io; build frontend with BASE_PATH=/.
-- [AlfathPOS frontend UI conventions](alfath-pos-ui.md) — fragile dark-mode override palette, alert()->toast (confirm() native), opt-in .mobile-cards for list tables only, ImageMagick not sharp.
+- [AlfathPOS authz & realtime model](alfathpos-authz-model.md) — ADMIN/AUDIT/CASHIER role matrix, own-branch scoping from verified JWT, socket rooms, no-oversell stock guard.
+- [AlfathPOS Docker deploy](alfathpos-docker-deploy.md) — single-stage api image, entrypoint db push auto-creates tables, nginx proxies /api + /socket.io.
+- [AlfathPOS frontend UI conventions](alfath-pos-ui.md) — fragile dark-mode palette, ALL browser dialogs replaced by in-app modals/toasts, opt-in .mobile-cards, ImageMagick not sharp.
 - [AlfathPOS dark-mode styling](alfathpos-dark-mode-styling.md) — restyle dark panels with the app standard LIGHT utility classes; dark-mode CSS overrides only match exact class names (opacity/hover variants need explicit dark:).
 - [AlfathPOS product naming](alfathpos-product-naming.md) — add-product name is built per-category by buildProductName(); Parfum aroma/size live only inside the name string, not DB columns.
 - [AlfathPOS shift & day boundaries](alfathpos-shift-day-boundaries.md) — day resets at 6 AM but shift-overdue boundary is 7 AM ON PURPOSE; 06:00–07:00 txns stay in night shift. Do not harmonize.

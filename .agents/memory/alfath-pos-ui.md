@@ -34,13 +34,19 @@ overriding `.tracking-widest`/`.tracking-wider`/`.tracking-tighter` letter-spaci
 `!important` (e.g. 0.045em / 0.025em / -0.02em). Keeps capitalization + layout; only relaxes
 spacing. Reversible.
 
-## Popups: native alert() is overridden to an in-app toast; confirm() is NOT
-`window.alert` is monkey-patched (~App.tsx 558-574) to route into the `globalAlerts` toast
-system (success keyword => green; else amber "Informasi Sistem"). So existing alert() calls
-already render as premium toasts. `window.confirm` stays the native browser dialog (an unused
-async confirm modal exists but call sites use native confirm).
-**How to apply:** don't add Sonner/another toast lib — use the existing globalAlerts. Leave
-confirm() native; converting to async is high-risk.
+## Popups: ALL native browser dialogs are replaced by in-app modals (no URL shown)
+The owner wants the app to feel like a native Android app — browser dialogs that show the
+site URL/domain are not acceptable. Three layers handle this:
+- `window.alert` is monkey-patched to route into the `globalAlerts` toast system (success
+  keyword => green; else amber "Informasi Sistem"). So any `alert()` call still renders as a toast.
+- `triggerConfirm(message): Promise<boolean>` + a confirm modal: ALL `confirm()` call sites
+  were converted to `await triggerConfirm(...)` (enclosing fns/onClick made async).
+- `triggerPrompt(message, default?): Promise<string|null>` + a prompt modal (resolves the typed
+  value on submit, `null` on cancel): replaces `window.prompt`.
+**Why:** native confirm/prompt leak the website URL and look like a webpage, not an app.
+**How to apply:** never add `window.confirm`/`window.prompt`/`alert` back, and don't add
+Sonner/another toast lib — use triggerConfirm / triggerPrompt / the existing globalAlerts.
+The ONLY allowed native `.prompt()` is `deferredPrompt.prompt()` (the PWA install API).
 
 ## Mobile tables: opt-in `.mobile-cards` CSS pattern, list-style tables ONLY
 `index.css` defines `@media (max-width:640px) table.mobile-cards { ... }` that turns rows into

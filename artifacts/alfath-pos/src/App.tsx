@@ -548,6 +548,16 @@ export default function App() {
     });
   };
 
+  // Native-style in-app prompt (replaces window.prompt, no website link shown)
+  const [promptModal, setPromptModal] = useState<{ message: string; resolve: (res: string | null) => void } | null>(null);
+  const [promptValue, setPromptValue] = useState("");
+  const triggerPrompt = (message: string, defaultValue = ""): Promise<string | null> => {
+    setPromptValue(defaultValue);
+    return new Promise((resolve) => {
+      setPromptModal({ message, resolve });
+    });
+  };
+
   useEffect(() => {
     const handleCustomAlert = (e: Event) => {
       const customEvent = e as CustomEvent<{ message: string; type?: "info" | "warning" | "success" }>;
@@ -1347,9 +1357,9 @@ export default function App() {
     if (uid === user?.uid)
       return alert("Anda tidak bisa menghapus akun Anda sendiri!");
     if (
-      !window.confirm(
+      !(await triggerConfirm(
         `Hapus akses karyawan "${name || "Tanpa Nama"}" secara permanen?`,
-      )
+      ))
     )
       return;
     try {
@@ -1429,7 +1439,7 @@ export default function App() {
 
   const handleCleanupAdjustments = async () => {
     if (profile?.role !== "ADMIN") return;
-    if (!window.confirm("Hapus riwayat penyesuaian stok (adjustments) lama?")) return;
+    if (!(await triggerConfirm("Hapus riwayat penyesuaian stok (adjustments) lama?"))) return;
     
     try {
       await api.cleanupAdjustments();
@@ -1522,7 +1532,7 @@ export default function App() {
       const duplicateBarcode = products.find(p => p.barcode === finalBarcode && (!editingProduct || p.id !== editingProduct.id));
       
       if (duplicateName) {
-        if (!window.confirm(`Produk dengan nama "${generatedName}" sudah ada. Tetap lanjutkan?`)) return;
+        if (!(await triggerConfirm(`Produk dengan nama "${generatedName}" sudah ada. Tetap lanjutkan?`))) return;
       }
       
       if (duplicateBarcode) {
@@ -1583,9 +1593,9 @@ export default function App() {
 
   const handleDeleteProduct = async (id: string, name: string) => {
     if (
-      !window.confirm(
+      !(await triggerConfirm(
         `Hapus master produk "${name}"? Tindakan ini tidak dapat dibatalkan.`,
-      )
+      ))
     )
       return;
     try {
@@ -2018,7 +2028,7 @@ export default function App() {
 
   const handleSyncOldSales = async () => {
     if (!profile || profile.role !== "ADMIN") return;
-    if (!window.confirm("Sinkronisasi riwayat penjualan ke ringkasan permanen? Ini akan memastikan statistik dashboard lengkap.")) return;
+    if (!(await triggerConfirm("Sinkronisasi riwayat penjualan ke ringkasan permanen? Ini akan memastikan statistik dashboard lengkap."))) return;
     
     setIsSyncingOldSales(true);
     try {
@@ -2059,7 +2069,7 @@ export default function App() {
       }
 
       if (isOverdue) {
-          if (!window.confirm(`Waktu shift ${cleanedShiftType} telah berakhir. Transaksi akan tetap masuk ke shift aktif saat ini, namun disarankan untuk segera tutup shift. Lanjut Transaksi?`)) {
+          if (!(await triggerConfirm(`Waktu shift ${cleanedShiftType} telah berakhir. Transaksi akan tetap masuk ke shift aktif saat ini, namun disarankan untuk segera tutup shift. Lanjut Transaksi?`))) {
               return;
           }
       }
@@ -2151,7 +2161,7 @@ export default function App() {
       !shiftOpen
     ) {
       const confirmMsg = `Sistem mendeteksi Anda baru saja menutup Shift ${shiftType} hari ini.\n\nApakah Anda ingin MELANJUTKAN shift sebelumnya agar laporan tetap rapi?\n\n(Klik 'OK' untuk Lanjutkan, 'Cancel' untuk Mulai Baru)`;
-      if (window.confirm(confirmMsg)) {
+      if (await triggerConfirm(confirmMsg)) {
         const oldStart = localStorage.getItem("last_shift_start_time");
         const oldName = localStorage.getItem("last_cashier_name");
         const oldLogical = localStorage.getItem("last_shift_logical_date");
@@ -2199,7 +2209,7 @@ export default function App() {
   };
 
   const handleWithdrawCommission = async (branchId: string) => {
-    if (!window.confirm("Cairkan seluruh bonus yang tersedia untuk cabang ini?")) return;
+    if (!(await triggerConfirm("Cairkan seluruh bonus yang tersedia untuk cabang ini?"))) return;
     setIsProcessingWithdraw(true);
     try {
       await api.withdrawCommission(branchId);
@@ -2215,7 +2225,7 @@ export default function App() {
     }
   };
 
-  const handleCloseShift = () => {
+  const handleCloseShift = async () => {
     console.log("handleCloseShift called, profile:", profile);
     if (!profile?.branchId) {
        console.log("handleCloseShift aborted: no profile or branchId");
@@ -2223,9 +2233,9 @@ export default function App() {
        return;
     }
     if (
-      !window.confirm(
+      !(await triggerConfirm(
         "Yakin ingin menutup shift? Pastikan semua transaksi sudah selesai.",
-      )
+      ))
     )
       return;
 
@@ -3590,7 +3600,7 @@ export default function App() {
                                       <td className="px-6 py-4 text-center">
                                         <button
                                           onClick={async () => {
-                                            if (confirm("Hapus riwayat shift ini? Tindakan ini tidak dapat dibatalkan.")) {
+                                            if (await triggerConfirm("Hapus riwayat shift ini? Tindakan ini tidak dapat dibatalkan.")) {
                                               try {
                                                 await fetch(`/api/shifts/${sh.id}`, {
                                                   method: 'DELETE',
@@ -3735,7 +3745,7 @@ export default function App() {
                                   </h4>
                                   <button
                                     onClick={async () => {
-                                      const newName = prompt(`Ubah Nama Cabang "${b.name}" menjadi:`, b.name);
+                                      const newName = await triggerPrompt(`Ubah Nama Cabang "${b.name}" menjadi:`, b.name);
                                       if (newName === null) return;
                                       const trimmed = newName.trim();
                                       if (!trimmed) return alert("Nama cabang tidak boleh kosong!");
@@ -3827,7 +3837,7 @@ export default function App() {
                                       return;
                                     }
                                     if (
-                                      confirm(
+                                      await triggerConfirm(
                                         `Hapus Cabang "${b.name}"?\nSemua data stok dan voucher di cabang ini akan dihapus. Data penjualan tetap tersimpan.`,
                                       )
                                     ) {
@@ -5068,8 +5078,8 @@ export default function App() {
                               <Smartphone className="w-3.5 h-3.5" /> Kirim WA
                             </button>
                             <button
-                              onClick={() => {
-                                if (confirm("Review rencana ini?")) {
+                              onClick={async () => {
+                                if (await triggerConfirm("Review rencana ini?")) {
                                   setIsCreatingPlan(true);
                                   setPlanDraftTitle(plan.title + " (Copy)");
                                   setPlanDraftItems(plan.items || []);
@@ -5081,7 +5091,7 @@ export default function App() {
                             </button>
                             <button
                               onClick={async () => {
-                                if (confirm("Hapus rencana ini?")) {
+                                if (await triggerConfirm("Hapus rencana ini?")) {
                                   try {
                                     await api.deleteShoppingPlan(plan.id);
                                     setShoppingPlans((prev) =>
@@ -5126,8 +5136,8 @@ export default function App() {
                       </div>
                       <div className="flex gap-3">
                         <button
-                          onClick={() => {
-                            const prod = prompt(
+                          onClick={async () => {
+                            const prod = await triggerPrompt(
                               "Masukkan Barcode atau Nama Produk:",
                             );
                             if (prod) {
@@ -6060,9 +6070,9 @@ export default function App() {
                                       "Lengkapi data pemusnahan & pilih cabang!",
                                     );
                                   if (
-                                    !window.confirm(
+                                    !(await triggerConfirm(
                                       "Yakin ingin memusnahkan stok?\nTindakan ini akan memotong stok sistem secara permanen.",
-                                    )
+                                    ))
                                   )
                                     return;
 
@@ -7784,7 +7794,7 @@ export default function App() {
                           </div>
 
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               const bId = (
                                 document.getElementById(
                                   "transfer-target-branch",
@@ -7809,9 +7819,9 @@ export default function App() {
                                   "Pilih Cabang Tujuan, Produk, dan Jumlah Transfer!",
                                 );
                               if (
-                                !window.confirm(
+                                !(await triggerConfirm(
                                   `Kirim ${q} pcs ${selectedTransferProduct.name} ke cabang tujuan?`,
-                                )
+                                ))
                               )
                                 return;
                               handleStockTransfer(pId, q, bId);
@@ -9125,6 +9135,53 @@ export default function App() {
               Ya, Setuju
             </button>
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* --- BRAND PROMPT POPUP (NO WEB ADDRESS / DOMAIN SHOWN) --- */}
+    {promptModal && (
+      <div className="fixed inset-0 z-[99999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-sm rounded-[32px] overflow-hidden border border-slate-100 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] animate-in fade-in zoom-in-95 duration-200">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              promptModal.resolve(promptValue);
+              setPromptModal(null);
+            }}
+          >
+            <div className="p-6 text-center">
+              <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Edit className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-3">Masukkan Data</h3>
+              <p className="text-xs text-slate-500 font-bold leading-relaxed mb-4 whitespace-pre-line">{promptModal.message}</p>
+              <input
+                autoFocus
+                value={promptValue}
+                onChange={(e) => setPromptValue(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 py-3 px-4 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-center"
+              />
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-150 flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  promptModal.resolve(null);
+                  setPromptModal(null);
+                }}
+                className="flex-1 bg-white border border-slate-200 hover:bg-slate-100 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 active:scale-95 transition-all text-center cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-slate-900 text-white hover:bg-black py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all text-center cursor-pointer"
+              >
+                Simpan
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     )}
