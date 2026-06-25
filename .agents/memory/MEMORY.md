@@ -6,5 +6,6 @@
 - [AlfathPOS dark-mode styling](alfathpos-dark-mode-styling.md) — restyle dark panels with the app standard LIGHT utility classes; dark-mode CSS overrides only match exact class names (opacity/hover variants need explicit dark:).
 - [AlfathPOS product naming](alfathpos-product-naming.md) — add-product name is built per-category by buildProductName(); Parfum aroma/size live only inside the name string, not DB columns.
 - [AlfathPOS shift & day boundaries](alfathpos-shift-day-boundaries.md) — day resets at 6 AM but shift-overdue boundary is 7 AM ON PURPOSE; 06:00–07:00 txns stay in night shift. Do not harmonize.
+- [AlfathPOS stock & SN model](alfathpos-stock-model.md) — one masterSN per product for recall + plain Pcs qty stock; per-unit Voucher SN intake removed (dead code); VoucherSN model kept for legacy cleanup only.
 - [AlfathPOS crash hardening](alfathpos-crash-hardening.md) — process error handlers log-and-stay-alive (POS uptime); numeric inputs must be validated AND normalized before DB writes, never written raw.
 - [AlfathPOS bonus accounting](alfathpos-bonus-accounting.md) — bonus = sum of Commission rows status=earned per BRANCH (single source of truth); User.bonusBalance is vestigial, refund only flips earned→refunded.

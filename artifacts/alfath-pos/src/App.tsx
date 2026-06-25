@@ -380,7 +380,6 @@ export default function App() {
   const [hasMoreSales, setHasMoreSales] = useState(true);
   const [lastSalesDoc, setLastSalesDoc] = useState<any>(null);
   const SALES_PAGE_SIZE = 100;
-  const [voucherSNs, setVoucherSNs] = useState<any[]>([]);
   const [appConfig, setAppConfig] = useState<any>({
     allowCashierStockInput: true,
   });
@@ -759,9 +758,6 @@ export default function App() {
   >(() => {});
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Voucher Batch Input
-  const [showVoucherAudit, setShowVoucherAudit] = useState<any>(null); // Current product being audited for SN
-  const [scannedSNs, setScannedSNs] = useState<string[]>([]);
 
   const [prodCategory, setProdCategory] = useState("Aksesoris");
   const [prodSubCategory, setProdSubCategory] = useState("Kabel Data");
@@ -1678,34 +1674,6 @@ export default function App() {
     }
   };
 
-  const handleSaveVoucherSNs = async () => {
-    if (!auditSelectedBranch || !showVoucherAudit) return;
-    if (scannedSNs.length === 0) return alert("Belum ada SN yang di-scan!");
-
-    try {
-      await api.bulkVouchers({
-        branchId: auditSelectedBranch,
-        productId: showVoucherAudit.id,
-        sns: scannedSNs,
-        productName: showVoucherAudit.name
-      });
-
-      // Refresh data
-      const pData = await api.getProducts();
-      setProducts(pData);
-      
-      setShowVoucherAudit(null);
-      setScannedSNs([]);
-      alert(`Berhasil Menambahkan ${scannedSNs.length} Voucher Baru!`);
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || "Gagal menyimpan SN Voucher.");
-    }
-  };
-
-  const removeScannedSN = (idx: number) => {
-    setScannedSNs((prev) => prev.filter((_, i) => i !== idx));
-  };
 
   // Cashier: Cart Logic
   const getBranchStock = (branchId: string, productId: string) => {

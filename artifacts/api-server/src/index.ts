@@ -915,53 +915,6 @@ app.post("/api/stocks/transfer", authenticateToken, requireRole("ADMIN", "AUDIT"
   }
 });
 
-app.post("/api/voucher-sns/bulk", authenticateToken, requireRole("ADMIN", "AUDIT", "CASHIER"), async (req, res) => {
-  const { branchId, productId, sns, productName } = req.body;
-  const requester = (req as any).user;
-  // Cashiers may only add voucher stock to their own branch; ADMIN/AUDIT may add to any branch.
-  if (requester.role === "CASHIER" && branchId !== requester.branchId) {
-    return res.status(403).json({ error: "Kasir hanya dapat menambah stok di cabangnya sendiri." });
-  }
-  try {
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Create VoucherSN records
-      for (const sn of sns) {
-        await tx.voucherSN.upsert({
-          where: { sn },
-          update: { branchId, productId, status: "available", productName },
-          create: { sn, branchId, productId, status: "available", productName }
-        });
-      }
-
-      // 2. Update Stock
-      const stock = await tx.productStock.upsert({
-        where: { productId_branchId: { productId, branchId } },
-        update: { qty: { increment: sns.length } },
-        create: { productId, branchId, qty: sns.length }
-      });
-
-      // 3. Audit Trail
-      await tx.adjustment.create({
-        data: {
-          productId,
-          branchId,
-          qty: sns.length,
-          type: "STOCK_IN",
-          reason: `Input Batch Voucher (${sns.length} SN)`,
-        }
-      });
-
-      return stock;
-    });
-
-    emitBranch(branchId, "stockUpdated", { productId, branchId, qty: result.qty });
-    res.json({ success: true, count: sns.length });
-  } catch (error) {
-    console.error("Voucher SN Bulk Error:", error);
-    res.status(500).json({ error: "Failed to save voucher SNs" });
-  }
-});
-
 app.patch("/api/users/:id", authenticateToken, async (req, res) => {
   // Security: only admins may modify users (role/branch/status/password). Without this
   // check any authenticated user could escalate their own role to ADMIN.

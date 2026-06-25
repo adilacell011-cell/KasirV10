@@ -116,16 +116,6 @@ export const api = {
     return res.json();
   },
 
-  async bulkVouchers(data: any) {
-    const res = await fetch(`${BASE_URL}/voucher-sns/bulk`, {
-      method: "POST",
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) { const txt = await res.text(); throw new Error(`Failed to save vouchers: ${res.status} ${txt}`); }
-    return res.json();
-  },
-
   async getBranches() {
     const res = await fetch(`${BASE_URL}/branches`, {
       headers: getHeaders(),
