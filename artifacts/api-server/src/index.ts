@@ -571,13 +571,9 @@ app.post("/api/transactions", authenticateToken, requireRole("ADMIN", "CASHIER")
         }
       }
 
-      // 4. Update User Bonus Balance
-      if (safeCommission > 0) {
-        await tx.user.update({
-          where: { id: actualCashierId },
-          data: { bonusBalance: { increment: safeCommission } }
-        });
-      }
+      // Bonus is tracked solely through the Commission ledger (status "earned"); the
+      // per-branch claimable balance is derived from it, so there is no separate counter
+      // to keep in sync.
 
       return sale;
     });
@@ -1048,23 +1044,20 @@ app.post("/api/transactions/:id/refund", authenticateToken, requireRole("ADMIN",
         });
       }
 
-      // 3. Update Commissions and User Bonus Balance
+      // 3. Reverse ONLY commissions that are still claimable ("earned"). Commissions that
+      // were already withdrawn (paid out to the cashier) must not be touched by a refund.
+      // Flipping earned -> refunded lowers the branch's earned total automatically, so the
+      // claimable bonus drops on refund and can never go negative (no counter to subtract).
       await tx.commission.updateMany({
-        where: { saleId: sale.id },
+        where: { saleId: sale.id, status: "earned" },
         data: { status: "refunded", refundedAt: new Date() }
       });
-
-      if (sale.totalCommission > 0) {
-        await tx.user.update({
-          where: { id: sale.cashierId },
-          data: { bonusBalance: { decrement: sale.totalCommission } }
-        });
-      }
 
       return updatedSale;
     });
 
     emitBranch((result as any).branchId, "saleUpdated", result);
+    emitBranch((result as any).branchId, "commissionsUpdated", { branchId: (result as any).branchId });
     res.json(result);
   } catch (error: any) {
     console.error("Refund Sale Error:", error);
@@ -1074,6 +1067,9 @@ app.post("/api/transactions/:id/refund", authenticateToken, requireRole("ADMIN",
 
 app.post("/api/incentives/withdraw", authenticateToken, requireRole("ADMIN"), async (req, res) => {
   const { branchId } = req.body;
+  if (!branchId || typeof branchId !== "string") {
+    return res.status(400).json({ error: "branchId wajib diisi." });
+  }
   try {
     const result = await prisma.commission.updateMany({
       where: {
@@ -1085,6 +1081,8 @@ app.post("/api/incentives/withdraw", authenticateToken, requireRole("ADMIN"), as
         withdrawnAt: new Date()
       }
     });
+    // Notify the branch (cashiers) and admins so their bonus balances refresh in real time.
+    emitBranch(branchId, "commissionsUpdated", { branchId });
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to withdraw commissions" });

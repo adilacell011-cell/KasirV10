@@ -1257,6 +1257,7 @@ export default function App() {
     socket.on("saleProcessed", () => loadData());
     socket.on("productUpdated", () => loadData());
     socket.on("stockUpdated", () => loadData());
+    socket.on("commissionsUpdated", () => loadData());
 
     return () => {
       socket.disconnect();
@@ -8113,7 +8114,7 @@ export default function App() {
                             Rp
                           </span>
                           <span className="text-2xl md:text-5xl font-black tracking-tighter">
-                            {(profile?.bonusBalance || 0).toLocaleString(
+                            {(commissionsSummary?.totalEarned || 0).toLocaleString(
                               "id-ID",
                             )}
                           </span>
