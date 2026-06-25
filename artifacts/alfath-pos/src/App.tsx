@@ -2190,10 +2190,6 @@ export default function App() {
 
     const startTime = new Date().toISOString();
     const activeLogicalDate = getLogicalShiftDate();
-    
-    setShiftStartTime(startTime);
-    setShiftLogicalDate(activeLogicalDate);
-    setShiftOpen(true);
 
     try {
       const shift = await api.openShift({
@@ -2206,7 +2202,14 @@ export default function App() {
       localStorage.setItem("current_shift_id", shift.id);
     } catch (e) {
       console.error("Shift Open Error:", e);
+      alert("Gagal membuka shift. Periksa koneksi ke server lalu coba lagi.");
+      return;
     }
+
+    // Berhasil tercatat di server — baru aktifkan shift di layar
+    setShiftStartTime(startTime);
+    setShiftLogicalDate(activeLogicalDate);
+    setShiftOpen(true);
 
     // Simpan untuk backup/lanjutkan nanti
     localStorage.setItem("last_shift_type", shiftType);
@@ -9297,7 +9300,7 @@ const CheckoutSuccessModal = ({ data, onClose, branches }: CheckoutSuccessModalP
             Transaksi Disimpan
           </h3>
           <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mt-0.5">
-            Mencetak Nota & Update Cloud Selesai
+            Transaksi Tersimpan & Stok Diperbarui
           </p>
         </div>
 
