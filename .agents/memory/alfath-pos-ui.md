@@ -57,6 +57,19 @@ labelled cards via `td::before { content: attr(data-label) }`. To convert a tabl
 **How to apply:** ONLY for list-style tables (one record per row). Do NOT apply to the
 matrix-style stock table (branches × products) — horizontal scroll is the correct UX there.
 
+## Global micro-interaction layer (index.css "Fase 0 micro-interaksi", at file END)
+Low-risk global polish lives at the END of index.css, NOT in JSX: smooth transitions on
+button/a/input/select/textarea/[role=button]; `:focus-visible` outline using `--accent`
+token (`:root` indigo `#4f46e5`, `.dark` `#60a5fa`); native feel via
+`-webkit-tap-highlight-color:transparent`; tactile press + `user-select:none` scoped to
+real `button` ONLY; light-mode `::-webkit-scrollbar`; light modal `backdrop-filter:blur(4px)`
+on `.bg-black/95|75|50`; plus a `prefers-reduced-motion` block neutralizing motion.
+**Why:** centralizes app feel without editing the 9k-line App.tsx; dark-mode scrollbar (6px)
+and modal blur (8px `!important`) still WIN by specificity.
+**How to apply:** don't add inline per-component transitions/press effects that duplicate
+these — extend this block. Keep press-scale + `user-select:none` on real `button` only so
+clickable `role="button"` cards stay text-selectable.
+
 ## Tooling
 ImageMagick is available as `magick`/`convert` (NOT `sharp`) for icon cropping/resizing.
 Frontend uses a base path: reference public assets in React via `import.meta.env.BASE_URL`

@@ -448,3 +448,93 @@ body {
     content: none;
   }
 }
+
+/* === Fase 0: Polesan global micro-interaksi (aman, tanpa ubah JSX) ===
+   Sentuhan halus untuk rasa "aplikasi native": transisi mulus, umpan-balik
+   saat tombol ditekan, fokus keyboard yang jelas, scrollbar mode terang yang
+   serasi dengan mode gelap, dan blur halus pada latar modal.
+   Semua reversible: hapus blok ini untuk kembali. */
+
+:root {
+  --accent: #4f46e5;
+}
+.dark {
+  --accent: #60a5fa;
+}
+
+/* Transisi mulus & konsisten pada elemen interaktif */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease,
+    opacity 0.18s ease;
+}
+
+/* Rasa native: tanpa kilatan biru saat disentuh & tanpa seleksi teks pada kontrol */
+button,
+[role="button"],
+a,
+label {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  user-select: none;
+}
+
+/* Umpan-balik tekan yang taktil — hanya tombol asli agar kartu yang dapat diklik tetap bisa diseleksi */
+button:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Cincin fokus keyboard yang jelas & aksesibel dalam warna aksen aplikasi */
+:where(button, a, input, select, textarea, [role="button"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Scrollbar mode terang agar serasi dengan scrollbar premium mode gelap */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Blur halus pada latar modal di mode terang (mode gelap punya blur lebih kuat) */
+.bg-black\/95,
+.bg-black\/75,
+.bg-black\/50 {
+  backdrop-filter: blur(4px);
+}
+
+/* Hormati preferensi pengurangan gerak (aksesibilitas) */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    transition: none !important;
+  }
+  button:not(:disabled):active {
+    transform: none !important;
+  }
+}
