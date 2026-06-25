@@ -954,6 +954,7 @@ export default function App() {
         const brand = (p.brand || "").toLowerCase();
         const category = (p.category || "").toLowerCase();
         const provider = (p.provider || "").toLowerCase();
+        const masterSN = (p.masterSN || "").toLowerCase();
 
         return searchWords.every(word => 
           name.includes(word) || 
@@ -961,7 +962,8 @@ export default function App() {
           type.includes(word) ||
           brand.includes(word) ||
           category.includes(word) ||
-          provider.includes(word)
+          provider.includes(word) ||
+          masterSN.includes(word)
         );
       })
       .sort((a, b) => {
@@ -1979,6 +1981,7 @@ export default function App() {
       list = list.filter(p => {
         const name = (p.name || "").toLowerCase();
         const barcode = (p.barcode || "").toLowerCase();
+        const type = (p.type || "").toLowerCase();
         const brand = (p.brand || "").toLowerCase();
         const category = (p.category || "").toLowerCase();
         const provider = (p.provider || "").toLowerCase();
@@ -1987,6 +1990,7 @@ export default function App() {
         return searchWords.every(word => 
           name.includes(word) || 
           barcode.includes(word) || 
+          type.includes(word) ||
           brand.includes(word) || 
           category.includes(word) || 
           provider.includes(word) ||
@@ -6759,7 +6763,11 @@ export default function App() {
                                   </button>
                                 </div>
                                 <div className="max-h-[300px] overflow-y-auto">
-                                  {searchSuggestions.slice(0, 10).map((p) => (
+                                  {searchSuggestions.slice(0, 10).map((p) => {
+                                    const stock = getBranchStock(profile?.branchId || "", p.id);
+                                    const hasDiscount = p.discountPrice > 0;
+                                    const price = hasDiscount ? p.discountPrice : p.sellingPrice;
+                                    return (
                                     <button
                                       key={p.id}
                                       onClick={() => {
@@ -6783,16 +6791,24 @@ export default function App() {
                                             {getProductName(p)}
                                             {p.masterSN && <span className="ml-1.5 text-purple-600 group-hover:text-purple-200 font-mono">({p.masterSN})</span>}
                                           </p>
-                                          <p className="text-[8px] font-black text-blue-600 mt-1 bg-blue-50 px-1 py-0.5 rounded leading-none group-hover:bg-white/15 group-hover:text-white uppercase text-left">
-                                            Stok Cabang: {getBranchStock(profile?.branchId || "", p.id)} Pcs
+                                          <p className={`text-[8px] font-black mt-1 px-1 py-0.5 rounded leading-none uppercase text-left group-hover:bg-white/15 group-hover:text-white ${stock > 0 ? "text-blue-600 bg-blue-50" : "text-rose-600 bg-rose-50"}`}>
+                                            {stock > 0 ? `Stok Cabang: ${stock} Pcs` : "Stok Habis"}
                                           </p>
                                         </div>
                                       </div>
-                                      <p className="text-xs font-black text-emerald-600 group-hover:text-white text-right font-mono">
-                                        Rp {p.sellingPrice.toLocaleString("id-ID")}
-                                      </p>
+                                      <div className="text-right">
+                                        <p className="text-xs font-black text-emerald-600 group-hover:text-white font-mono">
+                                          Rp {price.toLocaleString("id-ID")}
+                                        </p>
+                                        {hasDiscount && (
+                                          <p className="text-[8px] font-bold text-slate-400 group-hover:text-white/70 line-through font-mono mt-0.5">
+                                            Rp {p.sellingPrice.toLocaleString("id-ID")}
+                                          </p>
+                                        )}
+                                      </div>
                                     </button>
-                                  ))}
+                                    );
+                                  })}
                                   {searchTerm.length >= 3 && (
                                     <button 
                                       onClick={handleFullDatabaseSearch}
