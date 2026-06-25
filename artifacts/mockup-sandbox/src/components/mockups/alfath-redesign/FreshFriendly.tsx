@@ -270,8 +270,8 @@ export function FreshFriendly() {
                   {/* Bars */}
                   {[40, 65, 45, 80, 55, 90, 75].map((h, i) => (
                     <div key={i} className="relative flex flex-col items-center group w-[10%] z-10 h-full justify-end pb-6">
-                      <div className="w-full bg-[var(--accent-light)] rounded-t-xl overflow-hidden flex items-end relative transition-all group-hover:bg-[var(--accent-primary)]/20" style={{ height: \`\${h}%\` }}>
-                        <div className="w-full bg-[var(--accent-primary)] rounded-t-xl transition-all group-hover:brightness-110" style={{ height: \`\${h - 15}%\` }}></div>
+                      <div className="w-full bg-[var(--accent-light)] rounded-t-xl overflow-hidden flex items-end relative transition-all group-hover:bg-[var(--accent-primary)]/20" style={{ height: `${h}%` }}>
+                        <div className="w-full bg-[var(--accent-primary)] rounded-t-xl transition-all group-hover:brightness-110" style={{ height: `${h - 15}%` }}></div>
                         {/* Tooltip */}
                         <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[var(--text-main)] text-white text-[10px] font-bold py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg">
                           Rp {(h * 50).toLocaleString('id-ID')}
