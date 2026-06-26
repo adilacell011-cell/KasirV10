@@ -3149,12 +3149,14 @@ export default function App() {
         {/* --- DASHBOARD CONTENT AREA --- */}
         <div className="flex-1 flex flex-col min-w-0 pb-[68px] md:pb-0 relative h-[100dvh]">
           {/* HEADER */}
-          <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 shrink-0 z-10 shadow-sm relative">
+          <header className="h-16 bg-slate-50 flex items-center justify-between px-4 md:px-6 shrink-0 z-10 shadow-[0_6px_16px_rgba(184,194,208,0.45)] dark:shadow-[0_6px_16px_rgba(0,0,0,0.4)] relative">
             <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-              <button className="p-2 -ml-2 text-slate-600" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <button className="p-2 -ml-1 rounded-xl bg-slate-50 text-blue-600 shadow-[3px_3px_7px_#b8c2d0,-3px_-3px_7px_#ffffff,0_0_12px_1px_rgba(59,130,246,0.3)] dark:shadow-[3px_3px_7px_#1c1e24,-3px_-3px_7px_#34373f,0_0_12px_1px_rgba(59,130,246,0.3)] active:shadow-[inset_3px_3px_6px_#b8c2d0,inset_-3px_-3px_6px_#ffffff] dark:active:shadow-[inset_3px_3px_6px_#1c1e24,inset_-3px_-3px_6px_#34373f] transition-all" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 <Menu className="w-6 h-6" />
               </button>
-              <MdStorefront className="w-6 h-6 text-blue-600 md:hidden shrink-0" />
+              <div className="md:hidden shrink-0 w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shadow-[3px_3px_7px_#b8c2d0,-3px_-3px_7px_#ffffff,0_0_14px_1px_rgba(59,130,246,0.4)] dark:shadow-[3px_3px_7px_#1c1e24,-3px_-3px_7px_#34373f,0_0_14px_1px_rgba(59,130,246,0.4)]">
+                <MdStorefront className="w-5 h-5 text-blue-600" />
+              </div>
               <div className="flex flex-col justify-center">
                 <h2 className="text-sm md:text-md font-extrabold uppercase tracking-tight text-slate-800 truncate leading-tight">
                   {getPageTitle()}
@@ -3177,12 +3179,12 @@ export default function App() {
               {profile?.role === "ADMIN" && (
                 <button
                   onClick={() => setActiveMenu("shopping_list")}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded font-black text-[9px] uppercase tracking-widest transition-all ${activeMenu === "shopping_list" ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all ${activeMenu === "shopping_list" ? "bg-blue-600 text-white shadow-[0_0_18px_2px_rgba(59,130,246,0.6),4px_4px_10px_#b8c2d0,-4px_-4px_10px_#ffffff] dark:shadow-[0_0_18px_2px_rgba(59,130,246,0.6),4px_4px_10px_#1c1e24,-4px_-4px_10px_#34373f]" : "bg-slate-50 text-slate-600 shadow-[4px_4px_9px_#b8c2d0,-4px_-4px_9px_#ffffff] dark:shadow-[4px_4px_9px_#1c1e24,-4px_-4px_9px_#34373f] hover:shadow-[0_0_14px_1px_rgba(59,130,246,0.35),4px_4px_9px_#b8c2d0,-4px_-4px_9px_#ffffff] dark:hover:shadow-[0_0_14px_1px_rgba(59,130,246,0.35),4px_4px_9px_#1c1e24,-4px_-4px_9px_#34373f]"}`}
                 >
                   <ShoppingCart className="w-3.5 h-3.5" />
                   Daftar Belanja
                   {shopListAlertCount > 0 ? (
-                    <span className="w-4 h-4 bg-red-500 text-white flex items-center justify-center rounded-full text-[8px] animate-pulse">
+                    <span className="w-4 h-4 bg-red-500 text-white flex items-center justify-center rounded-full text-[8px] animate-pulse shadow-[0_0_10px_2px_rgba(239,68,68,0.7)]">
                       {shopListAlertCount}
                     </span>
                   ) : null}
@@ -3204,7 +3206,7 @@ export default function App() {
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white border border-slate-200 shrink-0 shadow-sm">
+              <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-slate-50 shrink-0 shadow-[3px_3px_7px_#b8c2d0,-3px_-3px_7px_#ffffff] dark:shadow-[3px_3px_7px_#1c1e24,-3px_-3px_7px_#34373f]">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse"}`} />
                 <span className="text-[7px] font-black uppercase text-slate-600 tracking-widest hidden xs:block">
                   {isOnline ? "Sistem Online" : "Koneksi Bermasalah"}
@@ -3212,18 +3214,18 @@ export default function App() {
               </div>
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className="flex items-center justify-center h-8.5 w-8.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 shrink-0 shadow-sm cursor-pointer transition-all"
+                className="flex items-center justify-center h-8.5 w-8.5 rounded-xl bg-slate-50 text-slate-600 shrink-0 cursor-pointer transition-all shadow-[3px_3px_7px_#b8c2d0,-3px_-3px_7px_#ffffff] dark:shadow-[3px_3px_7px_#1c1e24,-3px_-3px_7px_#34373f] active:shadow-[inset_3px_3px_6px_#b8c2d0,inset_-3px_-3px_6px_#ffffff] dark:active:shadow-[inset_3px_3px_6px_#1c1e24,inset_-3px_-3px_6px_#34373f]"
                 title={darkMode ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap"}
               >
                 {darkMode ? (
-                  <Sun className="w-4 h-4 text-amber-500" />
+                  <Sun className="w-4 h-4 text-amber-500 drop-shadow-[0_0_6px_rgba(245,158,11,0.75)]" />
                 ) : (
-                  <Moon className="w-4 h-4 text-slate-500" />
+                  <Moon className="w-4 h-4 text-indigo-500 drop-shadow-[0_0_6px_rgba(99,102,241,0.6)]" />
                 )}
               </button>
               <button
                 onClick={handleAppLogout}
-                className="lg:hidden w-8 h-8 rounded bg-slate-100 text-slate-500 border border-slate-200 flex items-center justify-center shrink-0"
+                className="lg:hidden w-8.5 h-8.5 rounded-xl bg-slate-50 text-red-500 flex items-center justify-center shrink-0 transition-all shadow-[3px_3px_7px_#b8c2d0,-3px_-3px_7px_#ffffff] dark:shadow-[3px_3px_7px_#1c1e24,-3px_-3px_7px_#34373f] active:shadow-[inset_3px_3px_6px_#b8c2d0,inset_-3px_-3px_6px_#ffffff] dark:active:shadow-[inset_3px_3px_6px_#1c1e24,inset_-3px_-3px_6px_#34373f] hover:shadow-[0_0_12px_1px_rgba(239,68,68,0.4),3px_3px_7px_#b8c2d0,-3px_-3px_7px_#ffffff] dark:hover:shadow-[0_0_12px_1px_rgba(239,68,68,0.4),3px_3px_7px_#1c1e24,-3px_-3px_7px_#34373f]"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -9327,7 +9329,7 @@ export default function App() {
 
         {/* MOBILE BOTTOM NAV */}
         <nav 
-          className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.02)] z-[50] overflow-x-auto hide-scrollbar"
+          className="md:hidden fixed bottom-0 w-full bg-slate-50 shadow-[0_-8px_20px_rgba(184,194,208,0.45)] dark:shadow-[0_-8px_20px_rgba(0,0,0,0.45)] z-[50] overflow-x-auto hide-scrollbar"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="flex items-center h-[68px] px-2 min-w-max">
@@ -9345,11 +9347,19 @@ export default function App() {
                 } ${item.locked ? "opacity-60" : ""}`}
               >
                 <div className="relative">
-                  <item.icon
-                    className={`w-5 h-5 ${activeMenu === item.id ? "fill-current" : ""}`}
-                  />
+                  <div
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                      activeMenu === item.id
+                        ? "bg-slate-50 scale-105 shadow-[0_0_18px_2px_rgba(59,130,246,0.5),4px_4px_9px_#b8c2d0,-4px_-4px_9px_#ffffff] dark:shadow-[0_0_18px_2px_rgba(59,130,246,0.5),4px_4px_9px_#1c1e24,-4px_-4px_9px_#34373f]"
+                        : ""
+                    }`}
+                  >
+                    <item.icon
+                      className={`w-5 h-5 ${activeMenu === item.id ? "fill-current" : ""}`}
+                    />
+                  </div>
                   {item.locked && (
-                    <div className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full p-0.5 border border-white">
+                    <div className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full p-0.5 border border-white shadow-[0_0_8px_1px_rgba(245,158,11,0.6)]">
                       <Lock className="w-2 h-2" />
                     </div>
                   )}
