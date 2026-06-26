@@ -305,6 +305,95 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   }
 }
 
+function ProductResultGrid({
+  products,
+  stocks,
+  branchId,
+  search,
+  selectedId,
+  onSelect,
+}: {
+  products: any[];
+  stocks: any[];
+  branchId: string;
+  search: string;
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const list = products.filter(
+    (p) =>
+      !search ||
+      (p?.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p?.barcode || "").includes(search) ||
+      (p?.brand || "").toLowerCase().includes(search.toLowerCase()),
+  );
+  const stockOf = (id: string) =>
+    stocks.find((s) => s.productId === id && s.branchId === branchId)?.qty || 0;
+
+  return (
+    <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="grid grid-cols-[1fr_4rem] bg-slate-800 text-slate-100">
+        <div className="px-3 py-2 text-[8px] font-black uppercase tracking-widest">
+          Nama Produk
+        </div>
+        <div className="px-3 py-2 text-[8px] font-black uppercase tracking-widest text-right border-l border-white/15">
+          Stok
+        </div>
+      </div>
+      <div className="max-h-60 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-slate-800 bg-white">
+        {list.length === 0 ? (
+          <div className="px-3 py-6 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Produk tidak ditemukan
+          </div>
+        ) : (
+          list.map((p, i) => {
+            const qty = stockOf(p.id);
+            const selected = selectedId === p.id;
+            const qtyColor =
+              qty <= 0
+                ? "text-rose-600 dark:text-rose-400"
+                : qty < 5
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-emerald-600 dark:text-emerald-400";
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onSelect(p.id)}
+                className={`w-full grid grid-cols-[1fr_4rem] items-stretch text-left transition-colors border-l-4 ${
+                  selected
+                    ? "bg-blue-50 dark:bg-blue-500/15 border-blue-500"
+                    : `${i % 2 === 1 ? "bg-slate-50/60" : "bg-white"} border-transparent hover:bg-slate-100`
+                }`}
+              >
+                <div className="px-3 py-2 min-w-0">
+                  <p className="text-[8px] font-black uppercase tracking-[0.1em] text-slate-400 leading-none mb-0.5 truncate">
+                    {p.brand || p.category || "UMUM"}
+                  </p>
+                  <p
+                    className={`text-[11px] font-black uppercase leading-tight line-clamp-1 ${
+                      selected
+                        ? "text-blue-700 dark:text-blue-300"
+                        : "text-slate-700 dark:text-slate-200"
+                    }`}
+                  >
+                    {p.name}
+                  </p>
+                </div>
+                <div
+                  className={`px-2 py-2 flex items-center justify-end border-l border-slate-100 tabular-nums text-sm font-black ${qtyColor}`}
+                >
+                  {qty}
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem("theme");
@@ -5949,29 +6038,14 @@ export default function App() {
                                       </button>
                                     )}
                                   </div>
-                                  <select
-                                    value={auditSelectedProductId}
-                                    onChange={(e) => setAuditSelectedProductId(e.target.value)}
-                                    className="w-full bg-white border border-slate-300 rounded-2xl px-4 py-3 md:py-4 text-[11px] font-black uppercase focus:ring-2 focus:ring-blue-600 shadow-sm transition-all outline-none appearance-none cursor-pointer"
-                                  >
-                                    <option value="">-- {auditProductSearch ? "HASIL PENCARIAN" : "PILIH PRODUK"} --</option>
-                                    {products
-                                      .filter(p => !auditProductSearch || (p?.name || "").toLowerCase().includes(auditProductSearch.toLowerCase()))
-                                      .map((p) => (
-                                      <option key={p.id} value={p.id}>
-                                        {p.name} (
-                                        {stocks.find(
-                                          (s) =>
-                                            s.productId === p.id &&
-                                            s.branchId === auditSelectedBranch,
-                                        )?.qty || 0}
-                                        )
-                                      </option>
-                                    ))}
-                                    {products.filter(p => !auditProductSearch || (p?.name || "").toLowerCase().includes(auditProductSearch.toLowerCase())).length === 0 && auditProductSearch && (
-                                      <option disabled>Produk tidak ditemukan...</option>
-                                    )}
-                                  </select>
+                                  <ProductResultGrid
+                                    products={products}
+                                    stocks={stocks}
+                                    branchId={auditSelectedBranch}
+                                    search={auditProductSearch}
+                                    selectedId={auditSelectedProductId}
+                                    onSelect={setAuditSelectedProductId}
+                                  />
                                 </div>
                               </div>
 
@@ -6090,29 +6164,14 @@ export default function App() {
                                       </button>
                                     )}
                                   </div>
-                                  <select
-                                    value={auditSelectedProductId}
-                                    onChange={(e) => setAuditSelectedProductId(e.target.value)}
-                                    className="w-full bg-white border border-slate-300 rounded-2xl px-4 py-3 md:py-4 text-[11px] font-black uppercase focus:ring-2 focus:ring-blue-600 shadow-sm transition-all outline-none appearance-none cursor-pointer"
-                                  >
-                                    <option value="">-- {auditProductSearch ? "HASIL PENCARIAN" : "PILIH PRODUK"} --</option>
-                                    {products
-                                      .filter(p => !auditProductSearch || (p?.name || "").toLowerCase().includes(auditProductSearch.toLowerCase()))
-                                      .map((p) => (
-                                      <option key={p.id} value={p.id}>
-                                        {p.name} (
-                                        {stocks.find(
-                                          (s) =>
-                                            s.productId === p.id &&
-                                            s.branchId === auditSelectedBranch,
-                                        )?.qty || 0}
-                                        )
-                                      </option>
-                                    ))}
-                                    {products.filter(p => !auditProductSearch || (p?.name || "").toLowerCase().includes(auditProductSearch.toLowerCase())).length === 0 && auditProductSearch && (
-                                      <option disabled>Produk tidak ditemukan...</option>
-                                    )}
-                                  </select>
+                                  <ProductResultGrid
+                                    products={products}
+                                    stocks={stocks}
+                                    branchId={auditSelectedBranch}
+                                    search={auditProductSearch}
+                                    selectedId={auditSelectedProductId}
+                                    onSelect={setAuditSelectedProductId}
+                                  />
                                 </div>
                               </div>
 
@@ -6240,29 +6299,14 @@ export default function App() {
                                       </button>
                                     )}
                                   </div>
-                                  <select
-                                    value={auditSelectedProductId}
-                                    onChange={(e) => setAuditSelectedProductId(e.target.value)}
-                                    className="w-full bg-white border border-slate-300 rounded-2xl px-4 py-3 md:py-4 text-[11px] font-black uppercase focus:ring-2 focus:ring-blue-600 shadow-sm transition-all outline-none appearance-none cursor-pointer"
-                                  >
-                                    <option value="">-- {auditProductSearch ? "HASIL PENCARIAN" : "PILIH PRODUK"} --</option>
-                                    {products
-                                      .filter(p => !auditProductSearch || (p?.name || "").toLowerCase().includes(auditProductSearch.toLowerCase()))
-                                      .map((p) => (
-                                      <option key={p.id} value={p.id}>
-                                        {p.name} (
-                                        {stocks.find(
-                                          (s) =>
-                                            s.productId === p.id &&
-                                            s.branchId === auditSelectedBranch,
-                                        )?.qty || 0}
-                                        )
-                                      </option>
-                                    ))}
-                                    {products.filter(p => !auditProductSearch || (p?.name || "").toLowerCase().includes(auditProductSearch.toLowerCase())).length === 0 && auditProductSearch && (
-                                      <option disabled>Produk tidak ditemukan...</option>
-                                    )}
-                                  </select>
+                                  <ProductResultGrid
+                                    products={products}
+                                    stocks={stocks}
+                                    branchId={auditSelectedBranch}
+                                    search={auditProductSearch}
+                                    selectedId={auditSelectedProductId}
+                                    onSelect={setAuditSelectedProductId}
+                                  />
                                 </div>
                               </div>
 
