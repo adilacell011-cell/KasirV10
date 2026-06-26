@@ -118,3 +118,12 @@ CSS; color-scheme is the only lever short of replacing every <select> with a cus
 The app font is already an iOS system stack (-apple-system, SF Pro) so "iOS-style" fonts
 need no change. App uses a manual `.dark` class toggle (not OS-based), so `:root` light +
 `.dark` dark is correct and equal-specificity-safe (.dark declared after :root).
+
+## Checkout success feedback (no popup)
+The cashier checkout success flow does NOT show a modal/popup — the change ("kembalian")
+calculator modal was removed at the user's request (they don't use it; pulsa sales are
+exact-amount). On successful `createSale`: clear cart, refresh products, then show ONLY a
+green success toast "Pembayaran Berhasil!". **Why:** user wants payment-success = transaction
+done, no extra tap. NOTE: toasts pushed directly via `setGlobalAlerts(...)` do NOT inherit the
+5s auto-dismiss — that timer lives only inside the `app-custom-alert` event handler. Any direct
+setGlobalAlerts push must add its own setTimeout filter to auto-remove, or it lingers on screen.
