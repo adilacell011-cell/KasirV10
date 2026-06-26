@@ -78,6 +78,30 @@ uri = "file://attached_assets/generated_images/logo_alfath_shield_4.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "GFMmnK87El4hiURzbQ5EU"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_1.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ErPicsuu2Lk6p5iWspDRd"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_2.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "IQ-_MHlilJaN2Gf2ZeOZY"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_3.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "2aSzyNSU4uapX558qbvCB"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_4.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "W7yaY3p7K3AQqMEJuIgpJ"
 uri = "file://attached_assets/generated_images/logo_alfath_concept1.png"
@@ -149,3 +173,27 @@ id = "GNK0zYAyedAPhA3XKqHPo"
 uri = "file://attached_assets/generated_images/logo_alfath_shield_4.png"
 type = "image"
 title = "Versi 4 — Minimalis bersih"
+
+[[outputs]]
+id = "RxkdHcXRCIWOQu_wmxTq3"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_1.png"
+type = "image"
+title = "Versi 1 — Kios + tenda + koin"
+
+[[outputs]]
+id = "lfTzNDF7EjWbBPutBo6C_"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_2.png"
+type = "image"
+title = "Versi 2 — Meja konter lengkap (EDC)"
+
+[[outputs]]
+id = "OIP-5NNa7kKgARioqTo1K"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_3.png"
+type = "image"
+title = "Versi 3 — Badge bulat gedung konter"
+
+[[outputs]]
+id = "3kuKY9X0Bs-rSFhzqHwBZ"
+uri = "file://attached_assets/generated_images/logo_alfath_pro_4.png"
+type = "image"
+title = "Versi 4 — Tenda toko + garis pulsa + koin"
