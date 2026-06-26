@@ -127,3 +127,13 @@ green success toast "Pembayaran Berhasil!". **Why:** user wants payment-success 
 done, no extra tap. NOTE: toasts pushed directly via `setGlobalAlerts(...)` do NOT inherit the
 5s auto-dismiss — that timer lives only inside the `app-custom-alert` event handler. Any direct
 setGlobalAlerts push must add its own setTimeout filter to auto-remove, or it lingers on screen.
+
+## Responsive conventions
+The app is mobile-first: base utility classes are the phone size and `md:`/`lg:` scale UP for
+tablet/PC. Keep this direction — never set a desktop size as the unprefixed base.
+**Why:** a few spots regressed by hardcoding desktop-only sizing (a big rupiah total, a 700px
+panel min-width) which overflowed or clipped on phones.
+**How to apply:** large numeric/currency text needs a responsive step + `break-words`; fixed
+panel `min-w-[...]` must be `lg:`-gated (parents sometimes have `overflow-hidden` that clips it);
+wide multi-column tables either live in `overflow-x-auto` or shrink fixed column widths on phones
+(`w-20 md:w-32`). Inner pages are login-gated so they can't be screenshotted — audit by code.

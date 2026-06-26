@@ -5590,7 +5590,7 @@ export default function App() {
                   </div>
 
                   <div className="flex-1 overflow-x-auto relative flex flex-col lg:flex-row h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto min-w-[700px] border-r border-slate-100 bg-white">
+                    <div className="flex-1 overflow-y-auto lg:min-w-[700px] border-r border-slate-100 bg-white">
                       {!auditSelectedBranch && (
                         <div className="absolute inset-0 bg-slate-50/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-4 md:p-6 text-center">
                           <MapPin className="w-12 h-12 text-slate-300 mb-3" />
@@ -5615,10 +5615,10 @@ export default function App() {
                                 ? "Produk Audit"
                                 : "Pilih Grup"}
                             </th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center w-32 border-x border-slate-200">
+                            <th className="px-2 md:px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center w-20 md:w-32 border-x border-slate-200">
                               Stok Sistem
                             </th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-blue-600 uppercase tracking-widest w-48">
+                            <th className="px-2 md:px-4 py-3 text-[10px] font-bold text-blue-600 uppercase tracking-widest w-32 md:w-48">
                               Edit Fisik Stok
                             </th>
                           </tr>
@@ -5717,12 +5717,12 @@ export default function App() {
                                         )}
                                       </p>
                                     </td>
-                                    <td className="px-4 py-3 text-center border-x border-slate-50">
+                                    <td className="px-2 md:px-4 py-3 text-center border-x border-slate-50">
                                       <span className="inline-flex items-center justify-center min-w-[40px] h-9 px-2 rounded-lg bg-slate-900 text-white font-black text-[10px]">
                                         {currentStock}
                                       </span>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-2 md:px-4 py-3">
                                       <div className="flex items-center gap-2">
                                         <input
                                           type="number"
@@ -8050,7 +8050,7 @@ export default function App() {
                       <div className="space-y-6">
                         <div className="bg-emerald-50 rounded-2xl p-6 shadow-sm border border-emerald-100 mb-6">
                           <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Total Komisi Seluruh Cabang</p>
-                          <p className="text-3xl font-black text-emerald-900 mt-1">
+                          <p className="text-2xl md:text-3xl font-black text-emerald-900 mt-1 break-words">
                             Rp {Object.values(branchSummaries).reduce((s, b) => s + (b.totalEarned || 0), 0).toLocaleString("id-ID")}
                           </p>
                           <p className="text-[9px] text-emerald-600 font-bold uppercase mt-2 italic">* Total saldo yang belum dicairkan</p>
