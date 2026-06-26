@@ -322,6 +322,8 @@ function ProductResultGrid({
   selectedId: string;
   onSelect: (id: string) => void;
 }) {
+  if (!search.trim()) return null;
+
   const list = products.filter(
     (p) =>
       !search ||
